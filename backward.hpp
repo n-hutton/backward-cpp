@@ -3683,9 +3683,13 @@ public:
         return std::vector<int>(posix_signals, posix_signals + sizeof posix_signals / sizeof posix_signals[0] );
    }
 
-  SignalHandling(const std::vector<int>& posix_signals = make_default_signals()):
-	  _loaded(false) {
+  static std::function<void(std::string)> _on_signal;
+
+  SignalHandling(std::function<void(std::string)> on_signal = nullptr, const std::vector<int>& posix_signals = make_default_signals()):
+	  _loaded(false)
+  {
 		bool success = true;
+    _on_signal = on_signal;
 
 		const size_t stack_size = 1024 * 1024 * 8;
 		_stack_content.reset(static_cast<char*>(malloc(stack_size)));
@@ -3758,7 +3762,17 @@ public:
 
 		Printer printer;
 		printer.address = true;
-		printer.print(st, stderr);
+
+		if(_on_signal)
+		{
+			std::ostringstream	oss;
+			printer.print(st,	oss);
+			_on_signal(oss.str());
+		}
+		else
+		{
+			printer.print(st,	stderr);
+		}
 
 #if _XOPEN_SOURCE >= 700 || _POSIX_C_SOURCE >= 200809L
 		psiginfo(info, nullptr);
