@@ -79,6 +79,7 @@
 #include <string>
 #include <vector>
 #include <limits>
+#include <functional>
 
 #if defined(BACKWARD_SYSTEM_LINUX)
 
